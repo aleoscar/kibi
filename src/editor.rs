@@ -106,6 +106,7 @@ impl Editor {
                 self.should_quit = true;
             }
 
+            //TODO: add Ctrl + Vim keybinds to move cursor
             KeyEvent{code: Up, ..} |  
             KeyEvent{code: Down, ..} |
             KeyEvent{code: Left, ..} |
