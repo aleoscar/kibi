@@ -1,7 +1,9 @@
 use std::io::{self, Write};
+use crate::editor::Position;
 use crossterm::{terminal::{self, ClearType},
     execute, cursor, 
     };
+
 pub struct Size {
     pub width: u16,
     pub height: u16
@@ -28,7 +30,6 @@ impl Terminal {
         )
     }
 
-
     pub fn size(&self) -> &Size {
         &self.size
     }
@@ -42,7 +43,11 @@ impl Terminal {
         execute!(io::stdout(), terminal::Clear(ClearType::CurrentLine)).unwrap();
     }
 
-    pub fn cursor_position(x: u16, y: u16) {
+    #[allow(clippy::cast_possible_truncation)]
+    pub fn cursor_position(pos: &Position) {
+        let Position{x, y} = pos;
+        let x = *x as u16;
+        let y = *y as u16;
         execute!(io::stdout(), cursor::MoveTo(x, y)).unwrap();
     }
 

@@ -3,7 +3,7 @@ use std::io;
 use crossterm::{self, execute, cursor, event::{
     self,
     Event::Key,
-    KeyCode::Char,
+    KeyCode::{self, *},
     KeyEventKind, KeyEvent, KeyModifiers,
 }};
 
@@ -11,7 +11,13 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 pub struct Editor {
     should_quit: bool,
-    terminal: Terminal
+    terminal: Terminal,
+    cursor_position: Position,
+}
+
+pub struct Position {
+    pub x: usize,
+    pub y: usize,
 }
 
 impl Editor {
@@ -19,13 +25,12 @@ impl Editor {
         Self {
             should_quit: false,
             terminal: Terminal::default().expect("failed to initalize terminal"),
+            cursor_position: Position { x: 0, y: 0},
         }
     }
 
     pub fn run(&mut self) {
-
         loop {
-
             self.refresh_screen();
 
             if self.should_quit {break;}
@@ -45,12 +50,13 @@ impl Editor {
         //I think (0, 0)
         execute!(io::stdout(), cursor::Hide).unwrap();
         Terminal::clear_screen();
-        Terminal::cursor_position(0, 0);
+        Terminal::cursor_position(&Position{x:0, y: 0});
         if self.should_quit {
             Terminal::clear_screen();
             println!("goodbye!")
         } else {
             self.draw_rows();
+            Terminal::cursor_position(&self.cursor_position);
         }
 
         execute!(io::stdout(), cursor::Show).unwrap();
@@ -82,10 +88,30 @@ impl Editor {
 
     }
 
+    fn move_cursor(&mut self, code: KeyCode) {
+        let Position {mut x, mut y} = self.cursor_position;
+        match code {
+            Up => y = y.saturating_sub(1),
+            Down => y = y.saturating_add(1),
+            Left => x = x.saturating_sub(1),
+            Right => x = x.saturating_add(1),
+            _ => ()
+        }
+        self.cursor_position = Position {x, y}
+    }
+
     pub fn handle_key_press(&mut self, key_event: &KeyEvent) {
         match  key_event {
             KeyEvent {modifiers: KeyModifiers::CONTROL, code: Char('q'), ..} => {
                 self.should_quit = true;
+            }
+
+            KeyEvent{code: Up, ..} |  
+            KeyEvent{code: Down, ..} |
+            KeyEvent{code: Left, ..} |
+            KeyEvent{code: Right, ..} => {
+                let KeyEvent {code, ..} = key_event;
+                self.move_cursor(*code)
             }
 
             KeyEvent {code: Char(c), ..} => {
