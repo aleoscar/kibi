@@ -90,11 +90,23 @@ impl Editor {
 
     fn move_cursor(&mut self, code: KeyCode) {
         let Position {mut x, mut y} = self.cursor_position;
+        let size = self.terminal.size();
+        let height = size.height.saturating_sub(1) as usize;
+        let width = size.width.saturating_sub(1) as usize;
+        
         match code {
             Up => y = y.saturating_sub(1),
-            Down => y = y.saturating_add(1),
+            Down => {
+                if y < height {
+                    y = y.saturating_add(1);
+                }
+            }
             Left => x = x.saturating_sub(1),
-            Right => x = x.saturating_add(1),
+            Right => {
+                if x < width {
+                    x = x.saturating_add(1);
+                }
+            },
             _ => ()
         }
         self.cursor_position = Position {x, y}
