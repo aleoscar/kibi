@@ -1,4 +1,5 @@
 use crate::Terminal;
+use crate::Document;
 use std::io;
 use crossterm::{self, execute, cursor, event::{
     self,
@@ -13,8 +14,10 @@ pub struct Editor {
     should_quit: bool,
     terminal: Terminal,
     cursor_position: Position,
+    document: Document,
 }
 
+#[derive(Default)]
 pub struct Position {
     pub x: usize,
     pub y: usize,
@@ -25,7 +28,8 @@ impl Editor {
         Self {
             should_quit: false,
             terminal: Terminal::default().expect("failed to initalize terminal"),
-            cursor_position: Position { x: 0, y: 0},
+            cursor_position: Position::default(),
+            document: Document::default(),
         }
     }
 
@@ -50,7 +54,7 @@ impl Editor {
         //I think (0, 0)
         execute!(io::stdout(), cursor::Hide).unwrap();
         Terminal::clear_screen();
-        Terminal::cursor_position(&Position{x:0, y: 0});
+        Terminal::cursor_position(&Position::default());
         if self.should_quit {
             Terminal::clear_screen();
             println!("goodbye!")
