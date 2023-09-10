@@ -96,17 +96,28 @@ impl Editor {
         
         match code {
             Up => y = y.saturating_sub(1),
+
             Down => {
                 if y < height {
                     y = y.saturating_add(1);
                 }
             }
             Left => x = x.saturating_sub(1),
+
             Right => {
                 if x < width {
                     x = x.saturating_add(1);
                 }
-            },
+            }
+
+            PageUp => y = 0,
+
+            PageDown => y = height,
+
+            Home => x = 0,
+
+            End => x = width,
+
             _ => ()
         }
         self.cursor_position = Position {x, y}
@@ -119,10 +130,14 @@ impl Editor {
             }
 
             //TODO: add Ctrl + Vim keybinds to move cursor
-            KeyEvent{code: Up, ..} |  
-            KeyEvent{code: Down, ..} |
-            KeyEvent{code: Left, ..} |
-            KeyEvent{code: Right, ..} => {
+            KeyEvent{code: Up, ..}       |  
+            KeyEvent{code: Down, ..}     |
+            KeyEvent{code: Left, ..}     |
+            KeyEvent{code: Right, ..}    |
+            KeyEvent{code: PageDown, ..} |
+            KeyEvent{code: PageUp, ..}   |
+            KeyEvent{code: Home, ..}     |
+            KeyEvent{code: End, ..} => {
                 let KeyEvent {code, ..} = key_event;
                 self.move_cursor(*code)
             }
