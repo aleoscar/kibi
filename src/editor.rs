@@ -64,7 +64,9 @@ impl Editor {
         //should it move to (1, 1) or (0, 0)? 
         //I think (0, 0)
         execute!(io::stdout(), cursor::Hide).unwrap();
-        Terminal::clear_screen();
+
+        //TODO: fix clearing flickering, probably only clear when quitting
+        //Terminal::clear_screen();
         Terminal::cursor_position(&Position::default());
         if self.should_quit {
             Terminal::clear_screen();
