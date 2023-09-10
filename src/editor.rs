@@ -1,6 +1,7 @@
 use crate::Terminal;
 use crate::Document;
 use crate::Row;
+use std::env;
 use std::io;
 use crossterm::{self, execute, cursor, event::{
     self,
@@ -26,16 +27,26 @@ pub struct Position {
 
 impl Editor {
     pub fn default() -> Self {
+        let args: Vec<String> = env::args().collect();
+        let document = if args.len() > 1 {
+            let filename = &args[1];
+            Document::open(filename).unwrap_or_default()
+        } else {
+            Document::default()
+        };
+
         Self {
             should_quit: false,
             terminal: Terminal::default().expect("failed to initalize terminal"),
             cursor_position: Position::default(),
-            document: Document::open(),
+            document: document,
         }
     }
 
     pub fn run(&mut self) {
         loop {
+
+            //will now refresh an extra time before quitting
             self.refresh_screen();
 
             if self.should_quit {break;}
@@ -157,15 +168,15 @@ impl Editor {
                 self.move_cursor(*code)
             }
 
-            KeyEvent {code: Char(c), ..} => {
+            /* KeyEvent {code: Char(c), ..} => {
                 println!("{c}");
             }
 
             KeyEvent {code, ..} => {
                 println!("{code:?}");
-            }
+            } */
 
-            //_ => false  
+            _ => ()  
         }
     }
 }
