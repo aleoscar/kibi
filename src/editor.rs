@@ -144,7 +144,7 @@ impl Editor {
     fn move_cursor(&mut self, code: KeyCode) {
         let Position {mut x, mut y} = self.cursor_position;
         let height = self.document.len();
-        let width = if let Some(row) = self.document.row(y) {
+        let mut width = if let Some(row) = self.document.row(y) {
             row.len()
         } else {
             0
@@ -176,6 +176,18 @@ impl Editor {
 
             _ => ()
         }
+
+        //sets cursor position to end of line if cursor is further to the right
+        //prevents going to eol on long line then moving cursor up/down
+        width = if let Some(row) = self.document.row(y) {
+            row.len()
+        } else {
+            0
+        };
+        if x > width {
+            x = width;
+        }
+
         self.cursor_position = Position {x, y};
         self.scroll()
     }
