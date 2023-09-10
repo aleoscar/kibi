@@ -45,18 +45,17 @@ impl Editor {
 
     pub fn run(&mut self) {
         loop {
-
-            //will now refresh an extra time before quitting
-            self.refresh_screen();
-
-            if self.should_quit {break;}
-
             let event = event::read().unwrap();
             if let Key(key_event) = event {
                 if let KeyEventKind::Press = key_event.kind {
                     self.handle_key_press(&key_event);
                 }
-            }
+            } else {continue;}
+            
+            //will now refresh an extra time before quitting
+            self.refresh_screen();
+
+            if self.should_quit {break;}
         }
     }
         
