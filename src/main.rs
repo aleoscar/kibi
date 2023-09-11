@@ -9,5 +9,6 @@ pub use terminal::Terminal;
 use editor::Editor;
 
 fn main() {
+    //Error now bubbles up, how should it be handled?
     Editor::default().run();
 }

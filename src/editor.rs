@@ -3,6 +3,7 @@ use crate::Document;
 use crate::Row;
 use std::env;
 use std::io;
+use std::time::{Instant, Duration};
 use crossterm::style::Color;
 use crossterm::{self, execute, style, cursor, event::{
     self,
@@ -19,6 +20,7 @@ pub struct Editor {
     cursor_position: Position,
     offset: Position,
     document: Document,
+    status_message: StatusMessage,
 }
 
 #[derive(Default)]
@@ -27,12 +29,33 @@ pub struct Position {
     pub y: usize,
 }
 
+pub struct StatusMessage {
+    text: String,
+    time: Instant,
+}
+
+impl StatusMessage {
+    fn from(message: String) -> Self {
+        Self { 
+            text: message,
+            time: Instant::now(),
+        }
+    }
+}
+
 impl Editor {
     pub fn default() -> Self {
+        let mut initial_status = String::from("HELP: Ctrl-Q = quit");
         let args: Vec<String> = env::args().collect();
         let document = if args.len() > 1 {
             let filename = &args[1];
-            Document::open(filename).unwrap_or_default()
+            let doc = Document::open(&filename);
+            if doc.is_ok() {
+                doc.unwrap()
+            } else {
+                initial_status = format!("ERR: Could not open file: {}", filename);
+                Document::default()
+            }
         } else {
             Document::default()
         };
@@ -43,10 +66,11 @@ impl Editor {
             cursor_position: Position::default(),
             offset: Position::default(),
             document: document,
+            status_message: StatusMessage::from(initial_status),
         }
     }
 
-    pub fn run(&mut self) {
+    pub fn run(&mut self) -> Result<(), std::io::Error> {
         loop {
             let event = event::read().unwrap();
             if let Key(key_event) = event {
@@ -56,13 +80,13 @@ impl Editor {
             } else {continue;}
             
             //will now refresh an extra time before quitting
-            self.refresh_screen();
+            self.refresh_screen()?;
 
-            if self.should_quit {break;}
+            if self.should_quit {break Ok(())}
         }
     }
         
-    fn refresh_screen(&self) {
+    fn refresh_screen(&self) -> Result<(), std::io::Error> {
 
         //should it move to (1, 1) or (0, 0)? 
         //I think (0, 0)
@@ -77,7 +101,7 @@ impl Editor {
         } else {
             //TODO add error handling
             self.draw_rows();
-            self.draw_status_bar();
+            self.draw_status_bar()?;
             self.draw_message_bar();
             Terminal::cursor_position(&Position {
                 x: self.cursor_position.x.saturating_sub(self.offset.x),
@@ -86,8 +110,7 @@ impl Editor {
         }
 
         execute!(io::stdout(), cursor::Show).unwrap();
-        //bad error handling
-        Terminal::flush().ok();
+        Terminal::flush()
     }
 
     fn scroll(&mut self) {
@@ -170,6 +193,12 @@ impl Editor {
 
     fn draw_message_bar(&self) {
         Terminal::clear_current_line();
+        let message = &self.status_message;
+        if Instant::now() - message.time < Duration::new(5, 0) {
+            let mut text = message.text.clone();
+            text.truncate(self.terminal.size().width as usize);
+            print!("{text}");
+        }
     }
 
     fn draw_welcome_message(&self) {

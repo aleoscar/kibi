@@ -1,8 +1,7 @@
 use std::io::{self, Write};
 use crate::editor::Position;
 use crossterm::{terminal::{self, ClearType},
-    execute, cursor, style::{self, Color, style, 
-    }};
+    execute, cursor, style::{self, Color,}};
 
 pub struct Size {
     pub width: u16,
