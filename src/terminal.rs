@@ -1,8 +1,8 @@
 use std::io::{self, Write};
 use crate::editor::Position;
 use crossterm::{terminal::{self, ClearType},
-    execute, cursor, 
-    };
+    execute, cursor, style::{self, Color, style, 
+    }};
 
 pub struct Size {
     pub width: u16,
@@ -22,7 +22,7 @@ impl Terminal {
         Ok(
             Self {size: Size {
                 width: width,
-                height: height
+                height: height.saturating_sub(2),
             },
             //bad error handling
             _stdout: terminal::enable_raw_mode(),
@@ -53,5 +53,17 @@ impl Terminal {
 
     pub fn flush() -> Result<(), std::io::Error> {
         io::stdout().flush()
+    }
+
+    pub fn reset_color() -> Result<(), std::io::Error> {
+        execute!(io::stdout(), style::ResetColor)
+    }
+
+    pub fn set_bg_color(color: Color) -> Result<(), std::io::Error> {
+        execute!(io::stdout(), style::SetBackgroundColor(color))
+    }
+
+    pub fn set_fg_color(color: Color) -> Result<(), std::io::Error> {
+        execute!(io::stdout(), style::SetForegroundColor(color))
     }
 }

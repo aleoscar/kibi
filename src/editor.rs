@@ -3,7 +3,8 @@ use crate::Document;
 use crate::Row;
 use std::env;
 use std::io;
-use crossterm::{self, execute, cursor, event::{
+use crossterm::style::Color;
+use crossterm::{self, execute, style, cursor, event::{
     self,
     Event::Key,
     KeyCode::{self, *},
@@ -74,7 +75,10 @@ impl Editor {
             Terminal::clear_screen();
             println!("goodbye!")
         } else {
+            //TODO add error handling
             self.draw_rows();
+            self.draw_status_bar();
+            self.draw_message_bar();
             Terminal::cursor_position(&Position {
                 x: self.cursor_position.x.saturating_sub(self.offset.x),
                 y: self.cursor_position.y.saturating_sub(self.offset.y),
@@ -90,7 +94,7 @@ impl Editor {
         let Position {x, y} = self.cursor_position;
         let width = self.terminal.size().width as usize;
         let height = self.terminal.size().height as usize;
-        let mut offset = &mut self.offset;
+        let offset = &mut self.offset;
         if y < offset.y {
             offset.y = y;
         } else if y >= offset.y.saturating_add(height) {
@@ -114,7 +118,7 @@ impl Editor {
 
     fn draw_rows(&self) {
         let height = self.terminal.size().height;
-        for terminal_row in 0..height - 1 {
+        for terminal_row in 0..height {
             Terminal::clear_current_line();
             if let Some(row) = self.document.row(
                 terminal_row as usize + self.offset.y
@@ -127,6 +131,45 @@ impl Editor {
                 println!("~\r")
             }
         }
+    }
+
+    fn draw_status_bar(&self) -> Result<(), std::io::Error> {
+        let mut status;
+        let width = self.terminal.size().width as usize;
+        let mut filename;
+        if let Some(name) = &self.document.filename {
+            filename = name.clone();
+            //bad error handling
+            filename = filename.split("\\").last().unwrap().to_string();
+            filename.truncate(20);
+        } else {
+            filename = "[No Name]".to_string();
+        }
+        status = format!(" {} - {} lines", filename, self.document.len());
+        
+        let line_indicator = format!(
+            "{}/{} ",
+            self.cursor_position.y.saturating_add(1),
+            self.document.len()
+        );
+
+        let len = status.len() + line_indicator.len();
+        if width > len {
+            status.push_str(&" ".repeat(width - len));
+        }
+
+        status = format!("{}{}", status, line_indicator);
+        status.truncate(width);
+
+        Terminal::set_fg_color(Color::Black)?;
+        Terminal::set_bg_color(Color::Green)?;
+        println!("{status}\r");
+        execute!(io::stdout(), style::ResetColor)?;
+        Ok(())
+    }
+
+    fn draw_message_bar(&self) {
+        Terminal::clear_current_line();
     }
 
     fn draw_welcome_message(&self) {
