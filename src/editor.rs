@@ -300,6 +300,7 @@ impl Editor {
             }
 
             //TODO: add Ctrl + Vim keybinds to move cursor
+            //also Ctrl + D for deleting entire row
             KeyEvent{code: Up, ..}       |  
             KeyEvent{code: Down, ..}     |
             KeyEvent{code: Left, ..}     |
@@ -311,6 +312,22 @@ impl Editor {
                 let KeyEvent {code, ..} = key_event;
                 self.move_cursor(*code)
             }
+
+            KeyEvent {code: Delete, ..} => {
+                self.document.delete(&self.cursor_position);
+            }
+
+            KeyEvent {code: Backspace, ..} => {
+                if self.cursor_position.x > 0 || self.cursor_position.y > 0 {
+                    self.move_cursor(Left);
+                    self.document.delete(&self.cursor_position);
+                }
+            }
+
+            KeyEvent {code: Tab, ..} => {
+                self.document.insert(&self.cursor_position, ' ');
+                self.move_cursor(Right)
+            } 
 
             KeyEvent {code: Char(c), ..} => {
                 self.document.insert(&self.cursor_position, *c);

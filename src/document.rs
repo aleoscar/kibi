@@ -32,6 +32,15 @@ impl Document {
         }
     }
 
+    pub fn delete(&mut self, pos: &Position) {
+        if pos.y >= self.len() {
+            return;
+        } else {
+            let row = self.rows.get_mut(pos.y).unwrap();
+            row.delete(pos.x);
+        }
+    }
+
     pub fn row(&self, index: usize) -> Option<&Row> {
         self.rows.get(index)
     }
