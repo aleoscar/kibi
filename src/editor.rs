@@ -312,10 +312,12 @@ impl Editor {
                 self.move_cursor(*code)
             }
 
-            /* KeyEvent {code: Char(c), ..} => {
-                println!("{c}");
+            KeyEvent {code: Char(c), ..} => {
+                self.document.insert(&self.cursor_position, *c);
+                self.move_cursor(Right)
             }
 
+            /*
             KeyEvent {code, ..} => {
                 println!("{code:?}");
             } */
