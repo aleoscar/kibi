@@ -324,6 +324,11 @@ impl Editor {
                 }
             }
 
+            KeyEvent {code: Enter, ..} => {
+                self.document.new_line(&self.cursor_position);
+                self.move_cursor(Right)
+            }
+
             KeyEvent {code: Tab, ..} => {
                 self.document.insert(&self.cursor_position, ' ');
                 self.move_cursor(Right)

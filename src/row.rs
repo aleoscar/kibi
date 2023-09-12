@@ -64,6 +64,19 @@ impl Row {
         self.update_len()
     }
 
+    pub fn split(&mut self, index: usize) -> Self {
+        let beginning: String = self.string[..].graphemes(true).take(index).collect();
+        let remainder: String = self.string[..].graphemes(true).skip(index).collect();
+        self.string = beginning;
+        self.update_len();
+        Self::from(&remainder[..])
+    }
+
+    pub fn append(&mut self, other: &Self) {
+        self.string.push_str(&other.string);
+        self.update_len()
+    }
+
     pub fn len(&self) -> usize {
         self.len
     }

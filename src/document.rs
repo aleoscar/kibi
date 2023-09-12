@@ -35,9 +35,28 @@ impl Document {
     pub fn delete(&mut self, pos: &Position) {
         if pos.y >= self.len() {
             return;
+        } 
+        
+        if pos.x == self.rows.get_mut(pos.y).unwrap().len() && pos.y < self.len() - 1 {
+            let next_row = self.rows.remove(pos.y + 1);
+            let current_row = self.rows.get_mut(pos.y).unwrap();
+            current_row.append(&next_row);
         } else {
             let row = self.rows.get_mut(pos.y).unwrap();
             row.delete(pos.x);
+        }
+    }
+
+    pub fn new_line(&mut self, pos: &Position) {
+        if pos.y > self.len() {
+            return;
+        }
+        if pos.y == self.len() {
+            self.rows.push(Row::default());
+            return;
+        } else {
+            let new_row = self.rows.get_mut(pos.y).unwrap().split(pos.x);
+            self.rows.insert(pos.y + 1, new_row)
         }
     }
 
