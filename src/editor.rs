@@ -330,8 +330,10 @@ impl Editor {
             }
 
             KeyEvent {code: Tab, ..} => {
-                self.document.insert(&self.cursor_position, ' ');
-                self.move_cursor(Right)
+                for _ in 0..4 {
+                    self.document.insert(&self.cursor_position, ' ');
+                    self.move_cursor(Right)
+                }
             } 
 
             KeyEvent {code: Char(c), ..} => {
