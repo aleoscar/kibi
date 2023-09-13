@@ -75,7 +75,7 @@ impl Editor {
             let event = event::read().unwrap();
             if let Key(key_event) = event {
                 if let KeyEventKind::Press = key_event.kind {
-                    self.handle_key_press(&key_event);
+                    self.handle_key_press(&key_event)?;
                 }
             } else {continue;}
             
@@ -213,6 +213,78 @@ impl Editor {
 
     }
 
+    fn save(&mut self) {
+        if self.document.filename.is_none() {
+            let new_name = self.prompt("Save as: ").unwrap_or(None);
+            if new_name.is_none() {
+                self.status_message = StatusMessage::from(
+                    "Save aborted".to_string()
+                );
+                return;
+            }
+
+            self.document.filename = new_name;
+        }
+
+        if self.document.save().is_ok() {
+            self.status_message = StatusMessage::from(
+                "File saved succesfully".to_string()
+            )
+        } else {
+            self.status_message = StatusMessage::from(
+                "Error writing file".to_string()
+            )
+        }
+
+    }
+
+    fn prompt(&mut self, message: &str) -> Result<Option<String>, std::io::Error> {
+        let mut result = String::new();
+        loop {
+            self.status_message = StatusMessage::from(
+                format!("{}{}", message, result)
+            );
+
+            self.refresh_screen()?;
+
+            let event = event::read()?;
+            if let Key(key_event) = event {
+                if let KeyEventKind::Press = key_event.kind {
+                    match key_event {
+                        KeyEvent{code: Enter, ..} => {
+                            break;
+                        }
+
+                        KeyEvent {code: Char(c), ..} => {
+                            result.push(c);
+                        }
+
+                        KeyEvent {code: Backspace, ..} => {
+                            if !result.is_empty() {
+                                result.truncate(result.len() - 1)
+                            }
+                        }
+
+                        KeyEvent{code: Esc, ..} => {
+                            result.truncate(0);
+                            break;
+                        }
+
+                        _ => {
+                            continue;
+                        }
+                    }
+                }
+            } else {continue;}
+        }
+
+        self.status_message = StatusMessage::from(String::new());
+        if result.is_empty() {
+            return Ok(None)
+        }
+        Ok(Some(result))
+    }
+
     fn move_cursor(&mut self, code: KeyCode) {
         let terminal_height = self.terminal.size().height as usize;
         let Position {mut x, mut y} = self.cursor_position;
@@ -293,23 +365,13 @@ impl Editor {
         self.scroll()
     }
 
-    pub fn handle_key_press(&mut self, key_event: &KeyEvent) {
+    pub fn handle_key_press(&mut self, key_event: &KeyEvent) -> Result<(), std::io::Error> {
         match  key_event {
             KeyEvent {modifiers: KeyModifiers::CONTROL, code: Char('q'), ..} => {
                 self.should_quit = true;
             }
 
-            KeyEvent {modifiers: KeyModifiers::CONTROL, code: Char('s'), ..} => {
-                if self.document.save().is_ok() {
-                    self.status_message = StatusMessage::from(
-                        "File saved succesfully".to_string()
-                    )
-                } else {
-                    self.status_message = StatusMessage::from(
-                        "Error writing file".to_string()
-                    )
-                }
-            }
+            KeyEvent {modifiers: KeyModifiers::CONTROL, code: Char('s'), ..} => self.save(),
 
             //TODO: add Ctrl + Vim keybinds to move cursor
             //also Ctrl + D for deleting entire row
@@ -360,5 +422,6 @@ impl Editor {
 
             _ => ()  
         }
+        Ok(())
     }
 }
