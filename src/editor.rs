@@ -159,6 +159,11 @@ impl Editor {
     fn draw_status_bar(&self) -> Result<(), std::io::Error> {
         let mut status;
         let width = self.terminal.size().width as usize;
+        let modified_indicator = if self.document.is_dirty() {
+            " (modified)"
+        } else {
+            ""
+        };
         let mut filename;
         if let Some(name) = &self.document.filename {
             filename = name.clone();
@@ -168,7 +173,11 @@ impl Editor {
         } else {
             filename = "[No Name]".to_string();
         }
-        status = format!(" {} - {} lines", filename, self.document.len());
+        status = format!(" {} - {} lines{}",
+            filename,
+            self.document.len(),
+            modified_indicator,
+        );
         
         let line_indicator = format!(
             "{}/{} ",

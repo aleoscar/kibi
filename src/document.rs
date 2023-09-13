@@ -7,6 +7,7 @@ use std::io::{Write, Error};
 pub struct Document {
     rows: Vec<Row>,
     pub filename: Option<String>,
+    dirty: bool,
 }
 
 impl Document {
@@ -19,15 +20,21 @@ impl Document {
         Ok(Self { 
             rows,
             filename: Some(filename.to_string()),
+            dirty: false,
         })
     }
 
     pub fn insert(&mut self, pos: &Position, c: char) {
+        if pos.y > self.len() {
+            return;
+        }
+
+        self.dirty = true;
         if pos.y == self.len() {
             let mut row = Row::default();
             row.insert(0, c);
             self.rows.push(row);
-        } else if pos.y < self.len() {
+        } else {
             let row = self.rows.get_mut(pos.y).unwrap();
             row.insert(pos.x, c);
         }
@@ -37,6 +44,8 @@ impl Document {
         if pos.y >= self.len() {
             return;
         } 
+
+        self.dirty = true;
         
         if pos.x == self.rows.get_mut(pos.y).unwrap().len() && pos.y < self.len() - 1 {
             let next_row = self.rows.remove(pos.y + 1);
@@ -49,9 +58,6 @@ impl Document {
     }
 
     pub fn new_line(&mut self, pos: &Position) {
-        if pos.y > self.len() {
-            return;
-        }
         if pos.y == self.len() {
             self.rows.push(Row::default());
             return;
@@ -61,7 +67,7 @@ impl Document {
         }
     }
 
-    pub fn save(&self) -> Result<(), Error> {
+    pub fn save(&mut self) -> Result<(), Error> {
         if let Some(name) = &self.filename {
             let mut file = fs::File::create(name)?;
             for row in &self.rows {
@@ -69,6 +75,7 @@ impl Document {
                 file.write_all(row.as_bytes())?;
                 file.write_all(b"\n")?;
             }
+            self.dirty = false;
         }
 
         Ok(())
@@ -80,6 +87,10 @@ impl Document {
 
     pub fn is_empty(&self) -> bool {
         self.rows.is_empty()
+    }
+
+    pub fn is_dirty(&self) -> bool {
+        self.dirty
     }
 
     pub fn len(&self) -> usize {
