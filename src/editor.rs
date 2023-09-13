@@ -151,7 +151,7 @@ impl Editor {
                 terminal_row == height / 3 {
                     self.draw_welcome_message()
             } else {
-                println!("~\r")
+                println!("\r")
             }
         }
     }
@@ -216,7 +216,7 @@ impl Editor {
         let len = welcome_message.len();
         let padding = width.saturating_sub(len) / 2;
         let spaces = " ".repeat(padding.saturating_sub(1));
-        welcome_message = format!("~{}{}", spaces, welcome_message);
+        welcome_message = format!(" {}{}", spaces, welcome_message);
         welcome_message.truncate(width);
         println!("{}\r", welcome_message);
 
