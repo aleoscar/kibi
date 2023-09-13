@@ -211,7 +211,7 @@ impl Editor {
     }
 
     fn draw_welcome_message(&self) {
-        let mut welcome_message = format!("Kibi text edior -- version {VERSION}");
+        let mut welcome_message = format!("Kibi text editor -- version {VERSION}");
         let width = self.terminal.size().width as usize;
         let len = welcome_message.len();
         let padding = width.saturating_sub(len) / 2;
