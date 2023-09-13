@@ -1,6 +1,7 @@
 use std::fs;
 use crate::Row;
 use crate::editor::Position;
+use std::io::{Write, Error};
 
 #[derive(Default)]
 pub struct Document {
@@ -58,6 +59,19 @@ impl Document {
             let new_row = self.rows.get_mut(pos.y).unwrap().split(pos.x);
             self.rows.insert(pos.y + 1, new_row)
         }
+    }
+
+    pub fn save(&self) -> Result<(), Error> {
+        if let Some(name) = &self.filename {
+            let mut file = fs::File::create(name)?;
+            for row in &self.rows {
+                //don't really wanna add a newline to the last row, should fix
+                file.write_all(row.as_bytes())?;
+                file.write_all(b"\n")?;
+            }
+        }
+
+        Ok(())
     }
 
     pub fn row(&self, index: usize) -> Option<&Row> {

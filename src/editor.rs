@@ -45,7 +45,7 @@ impl StatusMessage {
 
 impl Editor {
     pub fn default() -> Self {
-        let mut initial_status = String::from("HELP: Ctrl-Q = quit");
+        let mut initial_status = String::from("HELP: Ctrl-S = save, Ctrl-Q = quit");
         let args: Vec<String> = env::args().collect();
         let document = if args.len() > 1 {
             let filename = &args[1];
@@ -297,6 +297,18 @@ impl Editor {
         match  key_event {
             KeyEvent {modifiers: KeyModifiers::CONTROL, code: Char('q'), ..} => {
                 self.should_quit = true;
+            }
+
+            KeyEvent {modifiers: KeyModifiers::CONTROL, code: Char('s'), ..} => {
+                if self.document.save().is_ok() {
+                    self.status_message = StatusMessage::from(
+                        "File saved succesfully".to_string()
+                    )
+                } else {
+                    self.status_message = StatusMessage::from(
+                        "Error writing file".to_string()
+                    )
+                }
             }
 
             //TODO: add Ctrl + Vim keybinds to move cursor

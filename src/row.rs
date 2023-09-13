@@ -72,6 +72,10 @@ impl Row {
         Self::from(&remainder[..])
     }
 
+    pub fn as_bytes(&self) -> &[u8] {
+        self.string.as_bytes()
+    }
+
     pub fn append(&mut self, other: &Self) {
         self.string.push_str(&other.string);
         self.update_len()
