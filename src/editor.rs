@@ -305,14 +305,14 @@ impl Editor {
         };
         
         match code {
-            Up => y = y.saturating_sub(1),
+            Up | Char('k') => y = y.saturating_sub(1),
 
-            Down => {
+            Down | Char('j') => {
                 if y < height {
                     y = y.saturating_add(1);
                 }
             }
-            Left => {
+            Left | Char('h') => {
                 if x > 0 {
                     x -= 1
                 //goes up to previous line if cursor is at start of line
@@ -326,7 +326,7 @@ impl Editor {
                 }
             }
 
-            Right => {
+            Right | Char('l') => {
                 if x < width {
                     x += 1;
                 //goes to next line if cursor is at end of line
@@ -391,7 +391,11 @@ impl Editor {
             KeyEvent{code: PageDown, ..} |
             KeyEvent{code: PageUp, ..}   |
             KeyEvent{code: Home, ..}     |
-            KeyEvent{code: End, ..} => {
+            KeyEvent{code: End, ..}      |
+            KeyEvent{modifiers: KeyModifiers::CONTROL, code: Char('h'), ..} |
+            KeyEvent{modifiers: KeyModifiers::CONTROL, code: Char('j'), ..} |
+            KeyEvent{modifiers: KeyModifiers::CONTROL, code: Char('k'), ..} |
+            KeyEvent{modifiers: KeyModifiers::CONTROL, code: Char('l'), ..} => {
                 let KeyEvent {code, ..} = key_event;
                 self.move_cursor(*code)
             }
