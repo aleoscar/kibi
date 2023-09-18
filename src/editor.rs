@@ -47,11 +47,10 @@ impl Editor {
     pub fn default() -> Self {
         let mut initial_status = String::from("HELP: Ctrl-S = save, Ctrl-Q = quit");
         let args: Vec<String> = env::args().collect();
-        let document = if args.len() > 1 {
-            let filename = &args[1];
+        let document = if let Some(filename) = args.get(1) {
             let doc = Document::open(&filename);
-            if doc.is_ok() {
-                doc.unwrap()
+            if let Ok(doc) = doc {
+                doc
             } else {
                 initial_status = format!("ERR: Could not open file: {}", filename);
                 Document::default()
@@ -133,17 +132,18 @@ impl Editor {
     fn draw_row(&self, row: &Row) {
         let width = self.terminal.size().width as usize;
         let start = self.offset.x;
-        let end = self.offset.x + width;
+        let end = self.offset.x.saturating_add(width);
         let row = row.render(start, end);
         println!("{}\r", row)
     }
 
+    #[allow(clippy::integer_division, clippy::arithmetic_side_effects)]
     fn draw_rows(&self) {
         let height = self.terminal.size().height;
         for terminal_row in 0..height {
             Terminal::clear_current_line();
             if let Some(row) = self.document.row(
-                terminal_row as usize + self.offset.y
+                self.offset.y.saturating_add(terminal_row as usize)
             ) {
                 self.draw_row(row);
             } else if self.document.is_empty() && 
@@ -185,9 +185,7 @@ impl Editor {
         );
 
         let len = status.len() + line_indicator.len();
-        if width > len {
-            status.push_str(&" ".repeat(width - len));
-        }
+        status.push_str(&" ".repeat(width.saturating_sub(len)));
 
         status = format!("{}{}", status, line_indicator);
         status.truncate(width);
@@ -213,6 +211,7 @@ impl Editor {
         let mut welcome_message = format!("Kibi text editor -- version {VERSION}");
         let width = self.terminal.size().width as usize;
         let len = welcome_message.len();
+        #[allow(clippy::arithmetic_side_effects, clippy::integer_division)]
         let padding = width.saturating_sub(len) / 2;
         let spaces = " ".repeat(padding.saturating_sub(1));
         welcome_message = format!(" {}{}", spaces, welcome_message);
@@ -268,9 +267,7 @@ impl Editor {
                         }
 
                         KeyEvent {code: Backspace, ..} => {
-                            if !result.is_empty() {
-                                result.truncate(result.len() - 1)
-                            }
+                            result.truncate(result.len().saturating_sub(1))
                         }
 
                         KeyEvent{code: Esc, ..} => {
@@ -337,7 +334,7 @@ impl Editor {
 
             PageUp => {
                 y = if y > terminal_height {
-                    y - terminal_height
+                    y.saturating_sub(terminal_height)
                 } else {
                     0
                 }
@@ -347,7 +344,7 @@ impl Editor {
                 y = if y.saturating_add(terminal_height) >= height {
                     height
                 } else {
-                    y + terminal_height
+                    y.saturating_add(terminal_height)
                 }
             }
 
@@ -390,18 +387,11 @@ impl Editor {
 
             //TODO: add Ctrl + Vim keybinds to move cursor
             //also Ctrl + D for deleting entire row
-            KeyEvent{code: Up, ..}       |  
-            KeyEvent{code: Down, ..}     |
-            KeyEvent{code: Left, ..}     |
-            KeyEvent{code: Right, ..}    |
-            KeyEvent{code: PageDown, ..} |
-            KeyEvent{code: PageUp, ..}   |
-            KeyEvent{code: Home, ..}     |
-            KeyEvent{code: End, ..}      |
-            KeyEvent{modifiers: KeyModifiers::CONTROL, code: Char('h'), ..} |
-            KeyEvent{modifiers: KeyModifiers::CONTROL, code: Char('j'), ..} |
-            KeyEvent{modifiers: KeyModifiers::CONTROL, code: Char('k'), ..} |
-            KeyEvent{modifiers: KeyModifiers::CONTROL, code: Char('l'), ..} => {
+            KeyEvent{code: Up | Down | Left | Right | PageDown | PageUp | Home| End, ..} 
+                | KeyEvent{modifiers: KeyModifiers::CONTROL, code: Char('h')
+                | Char('j')
+                | Char('k')
+                | Char('l'), ..}  => {
                 let KeyEvent {code, ..} = key_event;
                 self.move_cursor(*code)
             }

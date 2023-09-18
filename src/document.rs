@@ -25,21 +25,23 @@ impl Document {
     }
 
     pub fn insert(&mut self, pos: &Position, c: char) {
-        if pos.y > self.len() {
+        if pos.y > self.rows.len() {
             return;
         }
 
         self.dirty = true;
-        if pos.y == self.len() {
+        if pos.y == self.rows.len() {
             let mut row = Row::default();
             row.insert(0, c);
             self.rows.push(row);
         } else {
-            let row = self.rows.get_mut(pos.y).unwrap();
+            #[allow(clippy::indexing_slicing)]
+            let row = &mut self.rows[pos.y];
             row.insert(pos.x, c);
         }
     }
 
+    #[allow(clippy::arithmetic_side_effects, clippy::indexing_slicing)]
     pub fn delete(&mut self, pos: &Position) {
         if pos.y >= self.len() {
             return;
@@ -47,22 +49,27 @@ impl Document {
 
         self.dirty = true;
         
-        if pos.x == self.rows.get_mut(pos.y).unwrap().len() && pos.y < self.len() - 1 {
+        if pos.x == self.rows[pos.y].len() && pos.y + 1 < self.rows.len() {
             let next_row = self.rows.remove(pos.y + 1);
-            let current_row = self.rows.get_mut(pos.y).unwrap();
+            let current_row = &mut self.rows[pos.y];
             current_row.append(&next_row);
         } else {
-            let row = self.rows.get_mut(pos.y).unwrap();
+            let row = &mut self.rows[pos.y];
             row.delete(pos.x);
         }
     }
 
     pub fn new_line(&mut self, pos: &Position) {
-        if pos.y == self.len() {
+        if pos.y > self.rows.len() {
+            return;
+        }
+        if pos.y == self.rows.len() {
             self.rows.push(Row::default());
             return;
         } else {
-            let new_row = self.rows.get_mut(pos.y).unwrap().split(pos.x);
+            #[allow(clippy::indexing_slicing)]
+            let new_row = self.rows[pos.y].split(pos.x);
+            #[allow(clippy::arithmetic_side_effects)]
             self.rows.insert(pos.y + 1, new_row)
         }
     }
