@@ -5,7 +5,6 @@ https://www.flenker.blog/hecto/
 ## List of features to add:  
 delete word  
 rope data structure refactor  
-warning for quitting when dirty  
 copy/pasting  
 multiple tabs
 
