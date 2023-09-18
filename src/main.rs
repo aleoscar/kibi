@@ -19,5 +19,7 @@ use editor::Editor;
 
 fn main() {
     //Error now bubbles up, how should it be handled?
-    Editor::default().run();
+    Editor::default().run().unwrap_or_else(|error| {
+        panic!("Err called from main: {:?}", error)
+    })
 }
