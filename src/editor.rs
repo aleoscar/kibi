@@ -97,7 +97,6 @@ impl Editor {
         Terminal::cursor_position(&Position::default());
         if self.should_quit {
             Terminal::clear_screen();
-            println!("goodbye!")
         } else {
             //TODO add error handling
             self.draw_rows();
