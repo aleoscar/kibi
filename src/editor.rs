@@ -377,7 +377,14 @@ impl Editor {
     pub fn handle_key_press(&mut self, key_event: &KeyEvent) -> Result<(), std::io::Error> {
         match  key_event {
             KeyEvent {modifiers: KeyModifiers::CONTROL, code: Char('q'), ..} => {
-                self.should_quit = true;
+                if self.document.is_dirty() {
+                    let result = self.prompt("Are you sure you want to quit? Document has been modified. \'Yes\' to continue: ").unwrap_or(None);
+                    if result.is_some() {
+                        self.should_quit = result.unwrap().trim().eq_ignore_ascii_case("yes")
+                    };
+                } else {
+                    self.should_quit = true;
+                }
             }
 
             KeyEvent {modifiers: KeyModifiers::CONTROL, code: Char('s'), ..} => self.save(),
