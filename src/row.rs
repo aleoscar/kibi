@@ -1,7 +1,7 @@
 use std::cmp;
 use unicode_segmentation::UnicodeSegmentation;
 
-#[derive(Default)]
+#[derive(Default, PartialEq)]
 pub struct Row {
     string: String,
     len: usize,
