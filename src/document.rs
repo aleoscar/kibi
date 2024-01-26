@@ -75,12 +75,11 @@ impl Document {
     }
 
     pub fn save(&mut self) -> Result<(), Error> {
-        let last_row = &self.rows.last().unwrap();
         if let Some(name) = &self.filename {
             let mut file = fs::File::create(name)?;
-            for row in &self.rows {
+            for (i, row) in self.rows.iter().enumerate() {
                 file.write_all(row.as_bytes())?;
-                if &row != last_row {
+                if i != self.rows.len() - 1 {
                     file.write_all(b"\n")?;
                 }
             }
