@@ -374,13 +374,15 @@ impl Editor {
         match  key_event {
             KeyEvent {modifiers: KeyModifiers::CONTROL, code: Char('q'), ..} => {
                 if self.document.is_dirty() {
-                    let result = self.prompt("Are you sure you want to quit? Document has been modified. \'Yes\' to continue, \'Save\' to save: ").unwrap_or(None);
+                    let result = self.prompt("Are you sure you want to quit? Document has been modified. \'Yes\' to continue, \'Save\' to save and quit: ").unwrap_or(None);
                     if result.is_some() {
                         let answer = result.unwrap();
                         if answer.trim().eq_ignore_ascii_case("save") {
                             self.save();
+                            self.should_quit = true;
+                        } else {
+                            self.should_quit = answer.trim().eq_ignore_ascii_case("yes")
                         }
-                        self.should_quit = answer.trim().eq_ignore_ascii_case("yes")
                     };
                 } else {
                     self.should_quit = true;
