@@ -7,4 +7,3 @@ delete word
 rope data structure refactor  
 copy/pasting  
 multiple tabs
-hej
