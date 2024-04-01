@@ -5,7 +5,7 @@ use std::env;
 use std::io;
 use std::time::{Instant, Duration};
 use crossterm::style::Color;
-use crossterm::{self, execute, style, cursor, event::{
+use crossterm::{self, execute, style, cursor, terminal, event::{
     self,
     Event::Key,
     KeyCode::{self, *},
@@ -70,6 +70,7 @@ impl Editor {
     }
 
     pub fn run(&mut self) -> Result<(), std::io::Error> {
+        self.refresh_screen()?;
         loop {
             let event = event::read().unwrap();
             if let Key(key_event) = event {
@@ -82,8 +83,9 @@ impl Editor {
             self.refresh_screen()?;
 
             if self.should_quit {
-                if let Err(_) = crossterm::terminal::disable_raw_mode() {
+                if let Err(e) = terminal::disable_raw_mode() {
                     eprintln!("failed to disable raw mode");
+                    return Err(e);
                 }
                 break Ok(())
             }
