@@ -81,7 +81,12 @@ impl Editor {
             //will now refresh an extra time before quitting
             self.refresh_screen()?;
 
-            if self.should_quit {break Ok(())}
+            if self.should_quit {
+                if let Err(_) = crossterm::terminal::disable_raw_mode() {
+                    eprintln!("failed to disable raw mode");
+                }
+                break Ok(())
+            }
         }
     }
         
