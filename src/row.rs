@@ -96,6 +96,10 @@ impl Row {
         Self { string: splitted_row, len: splitted_length }
     }
 
+    pub fn is_alphanumeric(&self, index: usize) -> bool {
+        self.string.chars().nth(index).unwrap().is_alphanumeric()
+    }
+
     pub fn as_bytes(&self) -> &[u8] {
         self.string.as_bytes()
     }

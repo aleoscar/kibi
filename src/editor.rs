@@ -297,6 +297,24 @@ impl Editor {
         Ok(Some(result))
     }
 
+    fn delete_word(&mut self) {
+        let Position {mut x, y} = self.cursor_position;
+        if self.document.row(y).is_some() {
+            //removes all trailing whitespace between last word and cursor
+            while x > 0 && !self.document.row(y).unwrap().is_alphanumeric(x - 1) {
+                self.move_cursor(Left);
+                self.document.delete(&self.cursor_position);
+                Position {x, ..} = self.cursor_position;
+            }
+            //removes the word before the cursor
+            while x > 0 && self.document.row(y).unwrap().is_alphanumeric(x - 1) {
+                self.move_cursor(Left);
+                self.document.delete(&self.cursor_position);
+                Position {x, ..} = self.cursor_position;
+            }
+        }
+    }
+
     fn move_cursor(&mut self, code: KeyCode) {
         let terminal_height = self.terminal.size().height as usize;
         let Position {mut x, mut y} = self.cursor_position;
@@ -408,6 +426,8 @@ impl Editor {
                 let KeyEvent {code, ..} = key_event;
                 self.move_cursor(*code)
             }
+
+            KeyEvent {modifiers: KeyModifiers::CONTROL, code: Char('w'), ..} => self.delete_word(),
 
             KeyEvent {code: Delete, ..} => {
                 self.document.delete(&self.cursor_position);
