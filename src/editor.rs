@@ -298,20 +298,11 @@ impl Editor {
     }
 
     fn delete_word(&mut self) {
-        let Position {mut x, y} = self.cursor_position;
-        let origin = x;
+        let Position {x, y} = self.cursor_position;
         if self.document.row(y).is_some() {
-            //moves cursor past all trailing whitespace between last word and cursor
-            while x > 0 && !self.document.row(y).unwrap().is_alphanumeric(x - 1) {
+            let dist = self.document.row(y).unwrap().distance_to_start(x);
+            for _i in 0..dist {
                 self.move_cursor(Left);
-                x -= 1;
-            }
-            //moves cursor to the start of the word before the cursor
-            while x > 0 && self.document.row(y).unwrap().is_alphanumeric(x - 1) {
-                self.move_cursor(Left);
-                x -= 1;
-            }
-            for _i in 0..(origin - x) {
                 self.document.delete(&self.cursor_position);
             }
         }

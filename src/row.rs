@@ -100,6 +100,28 @@ impl Row {
         self.string.chars().nth(index).unwrap().is_alphanumeric()
     }
 
+    pub fn distance_to_start(&self, index: usize) -> usize {
+        let mut iter = self.string.chars().rev().skip(self.len - index).peekable();
+        let mut i = 0;
+
+        while let Some(c) = iter.peek() {
+            if c.is_alphanumeric() {
+                break;
+            }
+            i += 1;
+            iter.next();
+        }
+
+        while let Some(c) = iter.peek() {
+            if !c.is_alphanumeric() {
+                break;
+            }
+            i += 1;
+            iter.next();
+        }
+        i
+    }
+
     pub fn as_bytes(&self) -> &[u8] {
         self.string.as_bytes()
     }
