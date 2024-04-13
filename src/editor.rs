@@ -64,7 +64,7 @@ impl Editor {
             terminal: Terminal::default().expect("failed to initalize terminal"),
             cursor_position: Position::default(),
             offset: Position::default(),
-            document: document,
+            document,
             status_message: StatusMessage::from(initial_status),
         }
     }
