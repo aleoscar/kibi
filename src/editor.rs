@@ -298,14 +298,34 @@ impl Editor {
     }
 
     fn delete_word(&mut self) {
+        let dist = self.jump_to_word_start();
+        for _i in 0..dist {
+            self.document.delete(&self.cursor_position);
+        }
+    }
+
+    fn jump_to_next_word(&mut self) -> usize {
+        let Position {x, y} = self.cursor_position;
+        if self.document.row(y).is_some() {
+            let dist = self.document.row(y).unwrap().distance_to_end(x);
+            for _i in 0..dist {
+                self.move_cursor(Right);
+            }
+            return dist;
+        }
+        return 0;
+    }
+
+    fn jump_to_word_start(&mut self) -> usize {
         let Position {x, y} = self.cursor_position;
         if self.document.row(y).is_some() {
             let dist = self.document.row(y).unwrap().distance_to_start(x);
             for _i in 0..dist {
                 self.move_cursor(Left);
-                self.document.delete(&self.cursor_position);
             }
+            return dist;
         }
+        return 0;
     }
 
     fn move_cursor(&mut self, code: KeyCode) {
@@ -408,8 +428,10 @@ impl Editor {
             }
 
             KeyEvent {modifiers: KeyModifiers::CONTROL, code: Char('s'), ..} => self.save(),
+            
+            KeyEvent {modifiers: KeyModifiers::CONTROL, code: Left, ..} => _ = self.jump_to_word_start(), 
+            KeyEvent {modifiers: KeyModifiers::CONTROL, code: Right, ..} => _ = self.jump_to_next_word(),
 
-            //TODO: add Ctrl + Vim keybinds to move cursor
             //also Ctrl + D for deleting entire row
             KeyEvent{code: Up | Down | Left | Right | PageDown | PageUp | Home| End, ..} 
                 | KeyEvent{modifiers: KeyModifiers::CONTROL, code: Char('h')
