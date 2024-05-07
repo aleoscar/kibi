@@ -442,7 +442,7 @@ impl Editor {
                 self.move_cursor(*code)
             }
 
-            KeyEvent {modifiers: KeyModifiers::CONTROL, code: Char('w'), ..} => self.delete_word(),
+            KeyEvent {modifiers: KeyModifiers::CONTROL, code: Char('b'), ..} => self.delete_word(),
 
             KeyEvent {code: Delete, ..} => {
                 self.document.delete(&self.cursor_position);
